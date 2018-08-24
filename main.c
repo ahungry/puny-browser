@@ -1,6 +1,6 @@
 /*
  * Puny Browser - The weakest browser around!
- * Copyright (C) 2015 Matthew Carter <m@ahungry.com>
+ * Copyright (C) 2015, 2018 Matthew Carter <m@ahungry.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// https://developer.gnome.org/gtk3/stable/ch01s04.html#id-1.2.3.12.10
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,13 +31,23 @@
 #include <errno.h>
 #include <webkit2/webkit2.h>
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
-/*
- * Start
- */
-int main (int argc, char *argv[])
+gboolean
+on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+
+static void
+print_hello (GtkWidget *widget, gpointer data)
+{
+  g_print ("Hello World\n");
+}
+
+int
+main (int argc, char *argv[])
 {
   GtkWidget *win, *view;
+  GtkWidget *button;
+  GtkWidget *button_box;
 
   gtk_init (&argc, &argv);
 
@@ -46,9 +58,20 @@ int main (int argc, char *argv[])
                     G_CALLBACK (gtk_main_quit),
                     NULL);
 
-  gtk_container_add (GTK_CONTAINER (win), view);
+  g_signal_connect (win, "key-press-event",
+                    G_CALLBACK (on_key_press),
+                    NULL);
 
-  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (view), "http://example.com");
+  button_box = gtk_button_box_new (GTK_ORIENTATION_HORIZONTAL);
+
+  gtk_container_add (GTK_CONTAINER (win), view);
+  gtk_container_add (GTK_CONTAINER (win), button_box);
+
+  button = gtk_button_new_with_label ("Hello World");
+  g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
+  gtk_container_add (GTK_CONTAINER (button_box), button);
+
+  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (view), "http://ahungry.com/eqauctions-live");
   webkit_web_view_run_javascript (WEBKIT_WEB_VIEW (view), "alert(1);", NULL, NULL, NULL);
 
   gtk_widget_show_all (win);
@@ -56,4 +79,18 @@ int main (int argc, char *argv[])
   gtk_main ();
 
   return 0;
+}
+
+gboolean
+on_key_press (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+  switch (event->keyval)
+    {
+    case GDK_KEY_p:
+      printf ("You pushed p\n");
+      // webkit_web_view_run_javascript (WEBKIT_WEB_VIEW (widget), "alert(2);", NULL, NULL, NULL);
+      break;
+    }
+
+  return true;
 }
